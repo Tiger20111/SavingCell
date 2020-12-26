@@ -23,6 +23,6 @@ public class People implements Runnable{
         System.out.println("Thread id: " + Thread.currentThread().getId() + ": start transfer from " + anotherId + " to " + id);
         Account anotherAcc = bank.getAccount(anotherId);
         anotherAcc.transfer(bank.baseAmount,this.account);
-        System.out.println("Thread id: " + Thread.currentThread().getId() + ": end transfer from " + anotherId + " to " + id + " "  + anotherAcc.getBalance());
+        System.out.println("Thread id: " + Thread.currentThread().getId() + ": end transfer from " + anotherId + " to " + id);
     }
 }
