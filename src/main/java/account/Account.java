@@ -24,13 +24,19 @@ public class Account {
         lock.unlock();
     }
 
-    public void withdrawal(int k) {
+    public void withdrawal(int k) throws InterruptedException {
         lock.lock();
-        while (preferred > 0 || balance < k) {
-            try {
+        while (true) {
+            if (balance < k) {
+                    condition.await();
+            }
+            preferredLock.lock();
+            if (balance < k || preferred > 0) {
+                preferredLock.unlock();
                 condition.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } else {
+                preferredLock.unlock();
+                break;
             }
         }
         balance -= k;
@@ -42,18 +48,14 @@ public class Account {
         return this.balance;
     }
 
-    public void withdrawalPreferred(int k) {
+    public void withdrawalPreferred(int k) throws InterruptedException {
         preferredLock.lock();
         preferred++;
         preferredLock.unlock();
 
         lock.lock();
         while (balance < k) {
-            try {
                 conditionPreferred.await();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
         }
         balance -= k;
         preferredLock.lock();
@@ -70,10 +72,15 @@ public class Account {
     public void transfer(int k, Account anotherAccount) {
         Random random = new Random();
         int exit = random.nextInt() % 2;
-        if (exit == 0) {
-            withdrawal(k);
-        } else {
-            withdrawalPreferred(k);
+        try {
+            if (exit == 0) {
+                    withdrawal(k);
+
+            } else {
+                withdrawalPreferred(k);
+        }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         anotherAccount.deposit(k);
     }
